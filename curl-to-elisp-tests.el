@@ -79,7 +79,12 @@
   (should (equal (curl-to-elisp "curl example.com -u demo:p@55w0rd")
                  '(let ((url-request-extra-headers
                          '(("Authorization" . "Basic ZGVtbzpwQDU1dzByZA=="))))
-                    (url-retrieve-synchronously "http://example.com")))))
+                    (url-retrieve-synchronously "http://example.com"))))
+
+  (should (string-match-p
+           "multipart/form-data"
+           (prin1-to-string
+            (curl-to-elisp "curl example.com -F username=xcy password=secret")))))
 
 (provide 'curl-to-elisp-tests)
 ;;; curl-to-elisp-tests.el ends here

@@ -34,6 +34,7 @@
 (require 'esh-cmd)                      ; `eshell-parse-command'
 (require 'subr-x)                       ; `string-trim'
 (require 'cl-lib)
+(require 'mml)                          ; `mm-url-encode-multipart-form-data'
 
 (defun curl-to-elisp--tokenize-recur (parse-tree)
   (pcase parse-tree
@@ -141,9 +142,15 @@ Adapted from URL
     (n (cons (capitalize (string-trim (substring header 0 n)))
              (capitalize (string-trim (substring header (1+ n))))))))
 
+(defun curl-to-elisp--parse-form (s)
+  (pcase (cl-position ?= s :test #'=)
+    ('nil nil)
+    (n (cons (substring s 0 n)
+             (substring s (1+ n))))))
+
 (defun curl-to-elisp--extract (alist)
   (let ((reversed (reverse alist))
-        url method headers data)
+        url method headers data form boundary)
     (setq url (or (assoc-default "url" alist)
                   (assoc-default "_" alist)))
     (and url
@@ -192,6 +199,24 @@ Adapted from URL
       (unless (assoc-default "Content-Type" headers)
         (push (cons "Content-Type" "application/x-www-form-urlencoded")
               headers)))
+
+    (dolist (kv alist)
+      (pcase kv
+        (`(,(or "F" "form" "form-string") . ,s)
+         (pcase (curl-to-elisp--parse-form s)
+           (`(,name . ,content)
+            (push (cons name content) form))))))
+
+    (when form
+      ;; ~ $ curl -F name=bob -d msg=hi example.com
+      ;; Warning: You can only select one HTTP request method! You asked for both POST
+      ;; Warning: (-d, --data) and multipart formpost (-F, --form).
+      (and data (user-error "curl doesn't allow -d and -F at the same time"))
+      (setq boundary (mml-compute-boundary '()))
+      (push (cons "Content-Type" (concat "multipart/form-data; boundary="
+			                 boundary))
+            headers)
+      (setq data (mm-url-encode-multipart-form-data (nreverse form) boundary)))
 
     (unless method
       (when data

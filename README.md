@@ -22,19 +22,21 @@ To get started, try `M-x curl-to-elisp curl -I example.com`, the Emacs Lisp code
 
 The following options are supported, other options are ignored.
 
-| Option                       | Note                           |
-|------------------------------|--------------------------------|
-| `-H, --header <header>`      |                                |
-| `-I, --head`                 |                                |
-| `-X, --request <command>`    |                                |
-| `-d, --data <data>`          | does not interpret `@` as file |
-| `--data-ascii <data>`        |                                |
-| `--data-binary <data>`       |                                |
-| `--data-raw <data>`          |                                |
-| `-A, --user-agent <name>`    |                                |
-| `-e, --referer <URL>`        |                                |
-| `--url <url>`                |                                |
-| `-u, --user <user:password>` | does not prompt for a password |
+| Option                        | Note                           |
+|-------------------------------|--------------------------------|
+| `-H, --header <header>`       |                                |
+| `-I, --head`                  |                                |
+| `-X, --request <command>`     |                                |
+| `-d, --data <data>`           | does not interpret `@` as file |
+| `--data-ascii <data>`         |                                |
+| `--data-binary <data>`        |                                |
+| `--data-raw <data>`           |                                |
+| `-F, --form <name=content>`   | does not interpret `@` as file |
+| `--form-string <name=string>` |                                |
+| `-A, --user-agent <name>`     |                                |
+| `-e, --referer <URL>`         |                                |
+| `--url <url>`                 |                                |
+| `-u, --user <user:password>`  | does not prompt for a password |
 
 ## Dependencies
 
