@@ -33,6 +33,7 @@
 
 (require 'esh-cmd)                      ; `eshell-parse-command'
 (require 'subr-x)                       ; `string-trim'
+(require 'cl-lib)
 
 (defun curl-to-elisp--tokenize-recur (parse-tree)
   (pcase parse-tree
