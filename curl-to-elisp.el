@@ -156,6 +156,17 @@ Adapted from URL
          (pcase (curl-to-elisp--parse-header s)
            (`(,k . ,v)
             (push (cons k v) headers))))))
+
+    (pcase (or (assoc "A" alist)
+               (assoc "user-agent" alist))
+      (`(,_ . ,s)
+       (push (cons "User-Agent" s) headers)))
+
+    (pcase (or (assoc "e" alist)
+               (assoc "referer" alist))
+      (`(,_ . ,s)
+       (push (cons "Referer" s) headers)))
+
     (setq headers (nreverse headers))
 
     (setq method (or (and (or (assoc-default "I" alist)

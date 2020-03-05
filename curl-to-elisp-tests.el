@@ -69,7 +69,12 @@
                         (url-request-extra-headers
                          '(("Content-Type" . "application/x-www-form-urlencoded")))
                         (url-request-data "hello&world"))
-                    (url-retrieve-synchronously "http://example.com")))))
+                    (url-retrieve-synchronously "http://example.com"))))
+
+  (should (string-match-p
+           "Referer"
+           (prin1-to-string
+            (curl-to-elisp "curl -v --referer http://gnu.org example.com")))))
 
 (provide 'curl-to-elisp-tests)
 ;;; curl-to-elisp-tests.el ends here
