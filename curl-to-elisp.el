@@ -104,28 +104,30 @@ Adapted from URL
         ;; --header 'Accept: application/json'
         ;; NOTE curl does not interpret =,
         ;; thus --header='Accept: application/json' is wrong
-        ((rx bos "--" (let name (1+ not-newline)))
-         (push (cons name
-                     (if (member name curl-to-elisp--bool-options)
-                         t
-                       (nth (cl-incf i) arguments)))
-               alist)
+        ((and s (guard (string-prefix-p "--" s)))
+         (let ((name (substring s 2)))
+           (push (cons name
+                       (if (member name curl-to-elisp--bool-options)
+                           t
+                         (nth (cl-incf i) arguments)))
+                 alist))
          (cl-incf i))
         ;; short option
         ;; -abc cval
         ;; -abccval
         ;; NOTE curl does not interpret =, thus -abc=cval is -a -b -c =cvalue
-        ((rx bos "-" (let opts (1+ not-newline)))
-         (catch 'short
-           (cl-loop for j from 0
-                    for o in (mapcar #'string (string-to-list opts))
-                    do (if (member o curl-to-elisp--bool-options)
-                           (push (cons o t) alist)
-                         (progn
-                           (if (= j (1- (length opts)))
-                               (push (cons o (nth (cl-incf i) arguments)) alist)
-                             (push (cons o (substring opts (1+ j))) alist))
-                           (throw 'short nil)))))
+        ((and s (guard (string-prefix-p "-" s)))
+         (let ((opts (substring s 1)))
+           (catch 'short
+             (cl-loop for j from 0
+                      for o in (mapcar #'string (string-to-list opts))
+                      do (if (member o curl-to-elisp--bool-options)
+                             (push (cons o t) alist)
+                           (progn
+                             (if (= j (1- (length opts)))
+                                 (push (cons o (nth (cl-incf i) arguments)) alist)
+                               (push (cons o (substring opts (1+ j))) alist))
+                             (throw 'short nil))))))
          (cl-incf i))
         (x
          (push (cons "_" x) alist)
@@ -133,9 +135,10 @@ Adapted from URL
     (nreverse alist)))
 
 (defun curl-to-elisp--parse-header (header)
-  (pcase header
-    ((rx (let k (+? not-newline)) ":" (* blank) (let v (+ not-newline)))
-     (cons (capitalize (string-trim k)) (string-trim v)))))
+  (pcase (cl-position ?: header :test #'=)
+    ('nil nil)
+    (n (cons (capitalize (string-trim (substring header 0 n)))
+             (capitalize (string-trim (substring header (1+ n))))))))
 
 (defun curl-to-elisp--extract (alist)
   (let ((reversed (reverse alist))
