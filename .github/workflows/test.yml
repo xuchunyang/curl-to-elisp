@@ -1,0 +1,22 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        emacs_version:
+          - 25.1
+          - 25.3
+          - 26.1
+          - 26.3
+          - snapshot
+    steps:
+    - uses: purcell/setup-emacs@master
+      with:
+        version: ${{ matrix.emacs_version }}
+    - uses: actions/checkout@v1
+    - name: Byte compile
+      run: 'emacs -Q --batch -L --eval "(setq byte-compile-error-on-warn t)" -f batch-byte-compile curl-to-elisp.el'
