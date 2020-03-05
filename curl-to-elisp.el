@@ -28,6 +28,7 @@
 ;;; Code:
 
 (require 'esh-cmd)                      ; `eshell-parse-command'
+(require 'subr-x)                       ; `string-trim'
 
 (defun curl-to-elisp--tokenize-recur (parse-tree)
   (pcase parse-tree
@@ -45,7 +46,8 @@
               ;; Eshell parses it into ("curl" "\n" "example.com")
               ;;
               ;; To workaround this issue, I remove all "\n"
-              (delete "\n" (eval (car arguments))))))
+              (mapcar #'substring-no-properties
+                      (delete "\n" (eval (car arguments)))))))
     ((pred listp)
      (mapc #'curl-to-elisp--tokenize-recur parse-tree))))
 
@@ -126,6 +128,89 @@ Adapted from URL
          (cl-incf i))))
     (nreverse alist)))
 
+(defun curl-to-elisp--parse-header (header)
+  (pcase header
+    ((rx (let k (+? not-newline)) ":" (* blank) (let v (+ not-newline)))
+     (cons (capitalize (string-trim k)) (string-trim v)))))
+
+(defun curl-to-elisp--extract (alist)
+  (let ((reversed (reverse alist))
+        url method headers data)
+    (setq url (or (assoc-default "url" alist)
+                  (assoc-default "_" alist)))
+    (and url
+         (not (string-match-p "\\`https?://" url))
+         (setq url (concat "http://" url)))
+
+    (dolist (kv alist)
+      (pcase kv
+        (`(,(or "H" "header") . ,s)
+         (pcase (curl-to-elisp--parse-header s)
+           (`(,k . ,v)
+            (push (cons k v) headers))))))
+    (setq headers (nreverse headers))
+
+    (setq method (or (and (or (assoc-default "I" alist)
+                              (assoc-default "head" alist))
+                          "HEAD")
+                     (assoc-default "require" reversed)
+                     (assoc-default "X" reversed)))
+
+    (dolist (kv alist)
+      (pcase kv
+        (`(,(or "d" "data" "data-ascii" "data-binary" "data-raw") . ,v)
+         (setq data (if data
+                        (concat data "&" v)
+                      v)))))
+
+    (when data
+      (unless (assoc-default "Content-Type" headers)
+        (push (cons "Content-Type" "application/x-www-form-urlencoded")
+              headers)))
+
+    (unless method
+      (when data
+        (setq method "POST")))
+
+    (list url method headers data)))
+
+(defun curl-to-elisp--build (url method headers data)
+  (let (user-agent)
+    ;; Emacs prefers `url-user-agent' to `url-request-extra-headers'
+    (pcase (assoc "User-Agent" headers)
+      ('nil nil)
+      ((and pair `(,_ . ,s))
+       (setq headers (delq pair headers))
+       (setq user-agent s)))
+    (let (bindings)
+      (when user-agent
+        (push `(url-user-agent ,user-agent) bindings))
+      (when method
+        (push `(url-request-method ,method) bindings))
+      (when headers
+        (push `(url-request-extra-headers ',headers) bindings))
+      (when data
+        (push `(url-request-data ,data) bindings))
+      (setq bindings (nreverse bindings))
+      (if bindings
+          `(let ,bindings
+             (url-retrieve-synchronously ,url))
+        `(url-retrieve-synchronously ,url)))))
+
+;;;###autoload
+(defun curl-to-elisp (command)
+  "Convert cURL COMMAND to Emacs Lisp expression, return the expression.
+
+When called interactively, also pretty-print the expression in echo area."
+  (interactive "scURL command: ")
+  (let ((expr (apply #'curl-to-elisp--build
+                     (curl-to-elisp--extract
+                      (curl-to-elisp--parse
+                       (curl-to-elisp--tokenize
+                        command))))))
+    (when (called-interactively-p 'any)
+      (pp expr))
+    expr))
 
 (provide 'curl-to-elisp)
 ;;; curl-to-elisp.el ends here

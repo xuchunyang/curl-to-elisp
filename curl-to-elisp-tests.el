@@ -49,5 +49,27 @@
   example.com")
                  '("-v" "-d" "hello" "example.com"))))
 
+(ert-deftest curl-to-elisp ()
+  (should (equal (curl-to-elisp "curl example.com")
+                 '(url-retrieve-synchronously "http://example.com")))
+
+  (should (equal (curl-to-elisp "curl -I example.com")
+                 '(let ((url-request-method "HEAD"))
+                    (url-retrieve-synchronously "http://example.com"))))
+
+  (should (equal (curl-to-elisp "curl -d 'hello world' example.com")
+                 '(let ((url-request-method "POST")
+                        (url-request-extra-headers
+                         '(("Content-Type" . "application/x-www-form-urlencoded")))
+                        (url-request-data "hello world"))
+                    (url-retrieve-synchronously "http://example.com"))))
+
+  (should (equal (curl-to-elisp "curl -d hello -d world example.com")
+                 '(let ((url-request-method "POST")
+                        (url-request-extra-headers
+                         '(("Content-Type" . "application/x-www-form-urlencoded")))
+                        (url-request-data "hello&world"))
+                    (url-retrieve-synchronously "http://example.com")))))
+
 (provide 'curl-to-elisp-tests)
 ;;; curl-to-elisp-tests.el ends here
