@@ -34,7 +34,8 @@
 (require 'esh-cmd)                      ; `eshell-parse-command'
 (require 'subr-x)                       ; `string-trim'
 (require 'cl-lib)
-(require 'mml)                          ; `mm-url-encode-multipart-form-data'
+(require 'mml)                          ; `mml-compute-boundary'
+(require 'mm-url)                       ; `mm-url-encode-multipart-form-data'
 
 (defun curl-to-elisp--tokenize-recur (parse-tree)
   (pcase parse-tree
