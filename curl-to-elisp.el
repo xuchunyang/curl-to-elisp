@@ -167,6 +167,12 @@ Adapted from URL
       (`(,_ . ,s)
        (push (cons "Referer" s) headers)))
 
+    (pcase (or (assoc "u" alist)
+               (assoc "user" alist))
+      (`(,_ . ,s)
+       (push (cons "Authorization" (concat "Basic " (base64-encode-string s)))
+             headers)))
+
     (setq headers (nreverse headers))
 
     (setq method (or (and (or (assoc-default "I" alist)

@@ -74,7 +74,12 @@
   (should (string-match-p
            "Referer"
            (prin1-to-string
-            (curl-to-elisp "curl -v --referer http://gnu.org example.com")))))
+            (curl-to-elisp "curl -v --referer http://gnu.org example.com"))))
+
+  (should (equal (curl-to-elisp "curl example.com -u demo:p@55w0rd")
+                 '(let ((url-request-extra-headers
+                         '(("Authorization" . "Basic ZGVtbzpwQDU1dzByZA=="))))
+                    (url-retrieve-synchronously "http://example.com")))))
 
 (provide 'curl-to-elisp-tests)
 ;;; curl-to-elisp-tests.el ends here
