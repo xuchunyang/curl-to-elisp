@@ -26,24 +26,24 @@
 (require 'ert)
 (require 'curl-to-elisp)
 
-(ert-deftest curl-to-elisp--parse ()
+(ert-deftest curl-to-elisp--tokenize ()
   "Test the curl command parser."
-  (should (equal (curl-to-elisp--parse "curl -I example.com")
+  (should (equal (curl-to-elisp--tokenize "curl -I example.com")
                  '("-I" "example.com")))
   ;; absolute path
-  (should (equal (curl-to-elisp--parse "/usr/bin/curl -I example.com")
+  (should (equal (curl-to-elisp--tokenize "/usr/bin/curl -I example.com")
                  '("-I" "example.com")))
   ;; pipeline
-  (should (equal (curl-to-elisp--parse "echo hello | curl -d @- localhost:7777")
+  (should (equal (curl-to-elisp--tokenize "echo hello | curl -d @- localhost:7777")
                  '("-d" "@-" "localhost:7777")))
   ;; quote
-  (should (equal (curl-to-elisp--parse "curl -d 'hello world' -d \"bye world\" localhost:7777")
+  (should (equal (curl-to-elisp--tokenize "curl -d 'hello world' -d \"bye world\" localhost:7777")
                  '("-d" "hello world" "-d" "bye world" "localhost:7777")))
   ;; escape
-  (should (equal (curl-to-elisp--parse "curl -d hello\\ world localhost:7777")
+  (should (equal (curl-to-elisp--tokenize "curl -d hello\\ world localhost:7777")
                  '("-d" "hello world" "localhost:7777")))
   ;; multiple lines
-  (should (equal (curl-to-elisp--parse
+  (should (equal (curl-to-elisp--tokenize
                   "curl -v \\
 -d hello \\
   example.com")

@@ -29,7 +29,7 @@
 
 (require 'esh-cmd)                      ; `eshell-parse-command'
 
-(defun curl-to-elisp--parse-recur (parse-tree)
+(defun curl-to-elisp--tokenize-recur (parse-tree)
   (pcase parse-tree
     (`(eshell-named-command ,command . ,arguments)
      (when (or (string= command "curl")
@@ -47,12 +47,12 @@
               ;; To workaround this issue, I remove all "\n"
               (delete "\n" (eval (car arguments))))))
     ((pred listp)
-     (mapc #'curl-to-elisp--parse-recur parse-tree))))
+     (mapc #'curl-to-elisp--tokenize-recur parse-tree))))
 
-(defun curl-to-elisp--parse (command)
-  "Parse a curl COMMAND, return a list of arguments."
+(defun curl-to-elisp--tokenize (command)
+  "Return a list of arguments in curl COMMAND."
   (catch 'curl
-    (curl-to-elisp--parse-recur
+    (curl-to-elisp--tokenize-recur
      (eshell-parse-command command nil t))
     (user-error "Not a curl command: %S" command)))
 
@@ -80,8 +80,10 @@ Adapted from URL
 
 ;; curl -vH   'User-Agent: not curl' example.com
 ;; curl -v -H 'User-Agent: not curl' example.com
-(defun curl-to-elisp--split (arguments)
-  "Futher parse ARGUMENTS, return a list of (OPTION . VALUE)."
+;; curl -vH'User-Agent: not curl' example.com
+;; curl -v --header 'User-Agent: not curl' example.com
+(defun curl-to-elisp--parse (arguments)
+  "Parse ARGUMENTS, return a list of (OPTION . VALUE)."
   (let ((i 0)
         alist)
     (while (< i (length arguments))
