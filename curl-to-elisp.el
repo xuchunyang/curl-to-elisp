@@ -149,6 +149,14 @@ Adapted from URL
     (n (cons (substring s 0 n)
              (substring s (1+ n))))))
 
+(defun curl-to-elisp--split-string (s ch)
+  "Split S into two substrings by CH.
+Return nil if S does not contain CH."
+  (pcase (cl-position ch s :test #'=)
+    ('nil nil)
+    (n    (list (substring s 0 n)
+                (substring s (1+ n))))))
+
 (defun curl-to-elisp--extract (alist)
   (let ((reversed (reverse alist))
         url method headers data form boundary)
@@ -194,7 +202,16 @@ Adapted from URL
         (`(,(or "d" "data" "data-ascii" "data-binary" "data-raw") . ,v)
          (setq data (if data
                         (concat data "&" v)
-                      v)))))
+                      v)))
+        (`("data-urlencode" . , v)
+         (let ((s (pcase (curl-to-elisp--split-string v ?=)
+                    ('nil (url-hexify-string v))
+                    (`(,name ,content)
+                     ;; curl urlencode CONTENT and leave NAME untouched
+                     (concat name "=" (url-hexify-string content))))))
+           (setq data (if data
+                        (concat data "&" s)
+                      s))))))
 
     (when data
       (unless (assoc-default "Content-Type" headers)

@@ -31,6 +31,7 @@ The following options are supported, other options are ignored.
 | `--data-ascii <data>`         |                                |
 | `--data-binary <data>`        |                                |
 | `--data-raw <data>`           |                                |
+| `--data-urlencode <data>`     |                                |
 | `-F, --form <name=content>`   | does not interpret `@` as file |
 | `--form-string <name=string>` |                                |
 | `-A, --user-agent <name>`     |                                |

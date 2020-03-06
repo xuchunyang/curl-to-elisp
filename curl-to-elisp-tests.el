@@ -86,5 +86,18 @@
            (prin1-to-string
             (curl-to-elisp "curl example.com -F username=xcy password=secret")))))
 
+(ert-deftest curl-to-elisp--extract ()
+  ;; test --data-urlencode
+  (should (member "name=a%20cat"
+                  (curl-to-elisp--extract
+                   (curl-to-elisp--parse
+                    (curl-to-elisp--tokenize
+                     "curl -v --data-urlencode 'name=a cat' localhost:4444")))))
+  (should (member "name=a%20cat&hobbies=fishing%2C%20golf"
+                  (curl-to-elisp--extract
+                   (curl-to-elisp--parse
+                    (curl-to-elisp--tokenize
+                     "curl -v --data-urlencode 'name=a cat' --data-urlencode 'hobbies=fishing, golf' localhost:4444"))))))
+
 (provide 'curl-to-elisp-tests)
 ;;; curl-to-elisp-tests.el ends here
