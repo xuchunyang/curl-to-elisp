@@ -38,6 +38,18 @@ The following options are supported, other options are ignored.
 | `--url <url>`                 |                                |
 | `-u, --user <user:password>`  | does not prompt for a password |
 
+### `-L`, `--location`
+
+Regarding the location header, curl doesn't redirect unless you use `-L`,
+`--location`, however, `url-retrieve[-synchronously]` DOES automatically
+redirect, to inhibit redirection, let-binding `url-max-redirections`, e.g.,
+
+``` emacs-lisp
+(let ((url-max-redirections 0))
+  (display-buffer
+   (url-retrieve-synchronously "http://emacs-china.org")))
+```
+
 ## Dependencies
 
 - Emacs 25.1
