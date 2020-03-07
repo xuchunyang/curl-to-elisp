@@ -1,0 +1,50 @@
+#+begin_src sh
+curl -v -F file=@1.html -F msg=hello localhost:4444
+#+end_src
+
+#+begin_example
+~ $ nc -l localhost 4444
+POST / HTTP/1.1
+Host: localhost:4444
+User-Agent: curl/7.54.0
+Accept: */*
+Content-Length: 395
+Expect: 100-continue
+Content-Type: multipart/form-data; boundary=------------------------900f2cf8df00a873
+
+--------------------------900f2cf8df00a873
+Content-Disposition: form-data; name="file"; filename="1.html"
+Content-Type: text/html
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset='utf-8'>
+  </head>
+  <body>
+    hello
+  </body>
+</html
+
+--------------------------900f2cf8df00a873
+Content-Disposition: form-data; name="msg"
+
+hello
+--------------------------900f2cf8df00a873--
+#+end_example
+
+#+begin_src elisp
+(let* ((url-request-method "POST")
+       (boundary (mml-compute-boundary '()))
+       (url-request-extra-headers
+        `(("Content-Type" . ,(concat "multipart/form-data; boundary=" boundary))))
+       (url-request-data
+        (mm-url-encode-multipart-form-data
+         '(("file" . (("name" . "file")
+                      ("filename" . "1.html")
+                      ("content-type" . "text/html")
+                      ("filedata" . "...")))
+           ("msg" . "hello"))
+         boundary)))
+  (url-retrieve-synchronously "http://localhost:4444/" ))
+#+end_src
