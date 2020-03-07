@@ -265,6 +265,12 @@ Return nil if S does not contain CH."
              (url-retrieve-synchronously ,url))
         `(url-retrieve-synchronously ,url)))))
 
+(defun curl-to-elisp--trim (command)
+  "Remove leading $ or # in COMMAND."
+  (string-trim-left
+   command
+   (rx bos (* blank) (? (in "$#")) (* blank))))
+
 ;;;###autoload
 (defun curl-to-elisp (command)
   "Convert cURL COMMAND to Emacs Lisp expression, return the expression.
@@ -275,7 +281,8 @@ When called interactively, also pretty-print the expression in echo area."
                      (curl-to-elisp--extract
                       (curl-to-elisp--parse
                        (curl-to-elisp--tokenize
-                        command))))))
+                        (curl-to-elisp--trim
+                         command)))))))
     (when (called-interactively-p 'any)
       (pp expr))
     expr))

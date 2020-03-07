@@ -99,5 +99,10 @@
                     (curl-to-elisp--tokenize
                      "curl -v --data-urlencode 'name=a cat' --data-urlencode 'hobbies=fishing, golf' localhost:4444"))))))
 
+(ert-deftest curl-to-elisp--trim ()
+  (string= (curl-to-elisp--trim "$ curl") "curl")
+  (string= (curl-to-elisp--trim "  #  curl") "curl")
+  (string= (curl-to-elisp--trim "  curl ") "curl "))
+
 (provide 'curl-to-elisp-tests)
 ;;; curl-to-elisp-tests.el ends here
