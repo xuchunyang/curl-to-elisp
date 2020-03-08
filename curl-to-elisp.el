@@ -38,6 +38,8 @@
 (require 'mm-url)                       ; `mm-url-encode-multipart-form-data'
 
 (defun curl-to-elisp--tokenize-recur (parse-tree)
+  "Tokenize PARSE-TREE recursively.
+Subroutine of `curl-to-elisp--tokenize'."
   (pcase parse-tree
     (`(eshell-named-command ,command . ,arguments)
      (when (or (string= command "curl")
@@ -138,12 +140,16 @@ Adapted from URL
     (nreverse alist)))
 
 (defun curl-to-elisp--parse-header (header)
+  "Parse the HTTP HEADER and return (NAME . VALUE).
+If the parse fails, return nil."
   (pcase (cl-position ?: header :test #'=)
     ('nil nil)
     (n (cons (capitalize (string-trim (substring header 0 n)))
-             (capitalize (string-trim (substring header (1+ n))))))))
+             (string-trim (substring header (1+ n)))))))
 
 (defun curl-to-elisp--parse-form (s)
+  "Parse form S in NAME=VALUE and return (NAME . VALUE).
+If the parse fails, return nil."
   (pcase (cl-position ?= s :test #'=)
     ('nil nil)
     (n (cons (substring s 0 n)
@@ -158,6 +164,7 @@ Return nil if S does not contain CH."
                 (substring s (1+ n))))))
 
 (defun curl-to-elisp--extract (alist)
+  "Extract request from ALIST."
   (let ((reversed (reverse alist))
         url method headers data form boundary)
     (setq url (or (assoc-default "url" alist)
@@ -210,8 +217,8 @@ Return nil if S does not contain CH."
                      ;; curl urlencode CONTENT and leave NAME untouched
                      (concat name "=" (url-hexify-string content))))))
            (setq data (if data
-                        (concat data "&" s)
-                      s))))))
+                          (concat data "&" s)
+                        s))))))
 
     (when data
       (unless (assoc-default "Content-Type" headers)
@@ -229,7 +236,7 @@ Return nil if S does not contain CH."
       ;; ~ $ curl -F name=bob -d msg=hi example.com
       ;; Warning: You can only select one HTTP request method! You asked for both POST
       ;; Warning: (-d, --data) and multipart formpost (-F, --form).
-      (and data (user-error "curl doesn't allow -d and -F at the same time"))
+      (and data (user-error "You can't use -d and -F at the same time"))
       (setq boundary (mml-compute-boundary '()))
       (push (cons "Content-Type" (concat "multipart/form-data; boundary="
 			                 boundary))
@@ -243,6 +250,7 @@ Return nil if S does not contain CH."
     (list url method headers data)))
 
 (defun curl-to-elisp--build (url method headers data)
+  "Build a http request using URL, METHOD, HEADERS, DATA, return a sexp."
   (let (user-agent)
     ;; Emacs prefers `url-user-agent' to `url-request-extra-headers'
     (pcase (assoc "User-Agent" headers)
