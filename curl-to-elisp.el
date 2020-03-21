@@ -166,13 +166,17 @@ Return nil if S does not contain CH."
 (defun curl-to-elisp--extract (alist)
   "Extract request from ALIST."
   (let ((reversed (reverse alist))
-        url method headers data form boundary)
+        url method headers data form boundary silent)
     (setq url (or (assoc-default "url" alist)
                   (assoc-default "_" alist)))
     (and url
          (not (string-match-p "\\`https?://" url))
          (setq url (concat "http://" url)))
 
+    (when (or (assoc-default "s" alist)
+              (assoc-default "silent" alist))
+      (setq silent t))
+    
     (dolist (kv alist)
       (pcase kv
         (`(,(or "H" "header") . ,s)
@@ -247,9 +251,9 @@ Return nil if S does not contain CH."
       (when data
         (setq method "POST")))
 
-    (list url method headers data)))
+    (list url method headers data silent)))
 
-(defun curl-to-elisp--build (url method headers data)
+(defun curl-to-elisp--build (url method headers data silent)
   "Build a http request using URL, METHOD, HEADERS, DATA, return a sexp."
   (let (user-agent)
     ;; Emacs prefers `url-user-agent' to `url-request-extra-headers'
@@ -267,6 +271,8 @@ Return nil if S does not contain CH."
         (push `(url-request-extra-headers ',headers) bindings))
       (when data
         (push `(url-request-data ,data) bindings))
+      (when silent
+        (push '(url-show-status nil) bindings))
       (setq bindings (nreverse bindings))
       (if bindings
           `(let ,bindings

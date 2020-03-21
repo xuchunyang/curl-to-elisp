@@ -80,11 +80,15 @@
                  '(let ((url-request-extra-headers
                          '(("Authorization" . "Basic ZGVtbzpwQDU1dzByZA=="))))
                     (url-retrieve-synchronously "http://example.com"))))
-
+  
   (should (string-match-p
            "multipart/form-data"
            (prin1-to-string
-            (curl-to-elisp "curl example.com -F username=xcy password=secret")))))
+            (curl-to-elisp "curl example.com -F username=xcy password=secret"))))
+
+  (should (equal (curl-to-elisp "curl -s example.com")
+                 '(let ((url-show-status nil))
+                    (url-retrieve-synchronously "http://example.com")))))
 
 (ert-deftest curl-to-elisp--extract ()
   ;; test --data-urlencode
