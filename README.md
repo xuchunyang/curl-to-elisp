@@ -38,7 +38,7 @@ The following options are supported, other options are ignored.
 | `-e, --referer <URL>`         |                                |
 | `--url <url>`                 |                                |
 | `-u, --user <user:password>`  | does not prompt for a password |
-| -s, --silent                  |                                |
+| `-s, --silent`                |                                |
 
 ### `-L`, `--location`
 
