@@ -1,4 +1,5 @@
 # Convert cURL command to Emacs Lisp code
+[![Melpa](https://melpa.org/packages/curl-to-elisp-badge.svg)](https://melpa.org/#/curl-to-elisp)
 
 _Inspired by [curl-to-Go: Convert curl commands to Go code](https://mholt.github.io/curl-to-go/)._
 
