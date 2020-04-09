@@ -37,6 +37,12 @@
 (require 'mml)                          ; `mml-compute-boundary'
 (require 'mm-url)                       ; `mm-url-encode-multipart-form-data'
 
+(defcustom curl-to-elisp-curlie-binary
+  (executable-find "curlie")
+  "Curlie executable used by curl-to-elisp."
+  :group 'curl-to-elisp
+  :type 'string)
+
 (defun curl-to-elisp--tokenize-recur (parse-tree)
   "Tokenize PARSE-TREE recursively.
 Subroutine of `curl-to-elisp--tokenize'."
@@ -176,7 +182,7 @@ Return nil if S does not contain CH."
     (when (or (assoc-default "s" alist)
               (assoc-default "silent" alist))
       (setq silent t))
-    
+
     (dolist (kv alist)
       (pcase kv
         (`(,(or "H" "header") . ,s)
@@ -284,6 +290,30 @@ Return nil if S does not contain CH."
   (string-trim-left
    command
    (rx bos (* blank) (? (in "$#")) (* blank))))
+
+
+;;; ###autoload
+(defun curl-to-elisp-httpie-to-elisp (command)
+  "Convert httpie/curlie COMMAND to Emacs Lisp expression, return the expression.
+
+When called interactively, also pretty-print the expression in echo area."
+  (interactive "shttpie command: ")
+  (if curl-to-elisp-curlie-binary
+      (let ((command (replace-regexp-in-string
+                      "^\\(curlie\\|http\\) "
+                      (format "%s --curl " curl-to-elisp-curlie-binary)
+                      command)))
+        (curl-to-elisp
+         (with-temp-buffer
+           (accept-process-output
+            (start-process-shell-command
+             "curl-to-elisp-httpie"
+             (current-buffer)
+             command))
+           (redisplay)
+           (buffer-string))))
+    (message "Can't find curlie executable. Check `curl-to-elisp-curlie-binary'.")))
+
 
 ;;;###autoload
 (defun curl-to-elisp (command)

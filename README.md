@@ -53,6 +53,14 @@ redirect, to inhibit redirection, let-binding `url-max-redirections`, e.g.,
    (url-retrieve-synchronously "http://emacs-china.org")))
 ```
 
+## httpie to elisp
+
+`curl-to-elisp-httpie-to-elisp` uses [curlie](https://curlie.io/) to
+transform an [httpie](https://httpie.org/)/curlie command to elisp.
+
+You need to have `curlie` binary in your path (or customize
+`curl-to-elisp-curlie-binary`).
+
 ## Dependencies
 
 - Emacs 25.1
