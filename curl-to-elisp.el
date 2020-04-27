@@ -311,23 +311,25 @@ When called interactively, also pretty-print the expression in echo area."
              (current-buffer)
              command))
            (redisplay)
-           (buffer-string))))
+           (buffer-string))
+         t))
     (message "Can't find curlie executable. Check `curl-to-elisp-curlie-binary'.")))
 
 
 ;;;###autoload
-(defun curl-to-elisp (command)
+(defun curl-to-elisp (command &optional print)
   "Convert cURL COMMAND to Emacs Lisp expression, return the expression.
 
-When called interactively, also pretty-print the expression in echo area."
-  (interactive "scURL command: ")
+When called interactively or PRINT is non-nil, also pretty-print
+the expression in echo area."
+  (interactive (list (read-string "cURL command: ") t))
   (let ((expr (apply #'curl-to-elisp--build
                      (curl-to-elisp--extract
                       (curl-to-elisp--parse
                        (curl-to-elisp--tokenize
                         (curl-to-elisp--trim
                          command)))))))
-    (when (called-interactively-p 'any)
+    (when print
       (pp expr))
     expr))
 
