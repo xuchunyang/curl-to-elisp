@@ -292,28 +292,29 @@ Return nil if S does not contain CH."
    (rx bos (* blank) (? (in "$#")) (* blank))))
 
 
-;;; ###autoload
-(defun curl-to-elisp-httpie-to-elisp (command)
+;;;###autoload
+(defun curl-to-elisp-httpie-to-elisp (command &optional print)
   "Convert httpie/curlie COMMAND to Emacs Lisp expression, return the expression.
 
-When called interactively, also pretty-print the expression in echo area."
-  (interactive "shttpie command: ")
-  (if curl-to-elisp-curlie-binary
-      (let ((command (replace-regexp-in-string
-                      "^\\(curlie\\|http\\) "
-                      (format "%s --curl " curl-to-elisp-curlie-binary)
-                      command)))
-        (curl-to-elisp
-         (with-temp-buffer
-           (accept-process-output
-            (start-process-shell-command
-             "curl-to-elisp-httpie"
-             (current-buffer)
-             command))
-           (redisplay)
-           (buffer-string))
-         t))
-    (message "Can't find curlie executable. Check `curl-to-elisp-curlie-binary'.")))
+When called interactively or PRINT is non-nil, also pretty-print
+the expression in echo area."
+  (interactive (list (read-string "httpie command: ") t))
+  (unless curl-to-elisp-curlie-binary
+    (user-error "Can't find curlie executable. Check `curl-to-elisp-curlie-binary'"))
+  (let ((command (replace-regexp-in-string
+                  "^\\(curlie\\|http\\) "
+                  (format "%s --curl " curl-to-elisp-curlie-binary)
+                  command)))
+    (curl-to-elisp
+     (with-temp-buffer
+       (accept-process-output
+        (start-process-shell-command
+         "curl-to-elisp-httpie"
+         (current-buffer)
+         command))
+       (redisplay)
+       (buffer-string))
+     print)))
 
 
 ;;;###autoload
