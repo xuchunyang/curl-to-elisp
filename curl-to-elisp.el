@@ -37,8 +37,11 @@
 (require 'mml)                          ; `mml-compute-boundary'
 (require 'mm-url)                       ; `mm-url-encode-multipart-form-data'
 
-(defcustom curl-to-elisp-curlie-binary
-  (executable-find "curlie")
+(defgroup curl-to-elisp nil
+  "Convert cURL command to equivalent Emacs Lisp code."
+  :group 'lisp)
+
+(defcustom curl-to-elisp-curlie-binary (executable-find "curlie")
   "Curlie executable used by curl-to-elisp."
   :group 'curl-to-elisp
   :type 'string)
