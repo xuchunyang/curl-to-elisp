@@ -61,6 +61,10 @@ transform an [httpie](https://httpie.org/)/curlie command to elisp.
 You need to have `curlie` binary in your path (or customize
 `curl-to-elisp-curlie-binary`).
 
+## curl to [verb](https://github.com/federicotdn/verb)
+
+`curl-to-elisp-verb` converts curl command to verb request specification.
+
 ## Dependencies
 
 - Emacs 25.1
