@@ -36,6 +36,7 @@
 (require 'cl-lib)
 (require 'mml)                          ; `mml-compute-boundary'
 (require 'mm-url)                       ; `mm-url-encode-multipart-form-data'
+(require 'seq)                          ; `seq' pattern of `pcase'
 
 (defgroup curl-to-elisp nil
   "Convert cURL command to equivalent Emacs Lisp code."
@@ -336,6 +337,35 @@ the expression in echo area."
     (when print
       (pp expr))
     expr))
+
+;;;###autoload
+(defun curl-to-elisp-verb (command &optional insert)
+  "Convert cURL COMMAND to verb request specification, return the specification.
+
+When INSERT is non-nil, insert the result at point.
+
+For verb request specification, see URL
+`https://github.com/federicotdn/verb#writing-request-specifications'."
+  (interactive (list (read-string "cURL command: ") t))
+  (pcase-exhaustive (curl-to-elisp--extract
+                     (curl-to-elisp--parse
+                      (curl-to-elisp--tokenize
+                       (curl-to-elisp--trim
+                        command))))
+    ((seq url method headers data _silent)
+     (let ((s (format "%s %s" (downcase (or method "GET")) url)))
+       (when headers
+         (setq s (concat s "\n" (mapconcat
+                                 (pcase-lambda (`(,key . ,val))
+                                   (format "%s: %s" (capitalize key) val))
+                                 headers
+                                 "\n"))))
+       (when data
+         (setq s (concat s "\n\n" data)))
+       (when insert
+         (save-excursion
+           (insert s)))
+       s))))
 
 (provide 'curl-to-elisp)
 ;;; curl-to-elisp.el ends here
