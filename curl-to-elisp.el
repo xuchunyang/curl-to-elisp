@@ -292,9 +292,10 @@ Return nil if S does not contain CH."
 
 (defun curl-to-elisp--trim (command)
   "Remove leading $ or # in COMMAND."
-  (string-trim-left
-   command
-   (rx bos (* blank) (? (in "$#")) (* blank))))
+  (replace-regexp-in-string
+   (rx bos (* blank) (? (in "$#")) (* blank))
+   ""
+   command))
 
 
 ;;;###autoload
