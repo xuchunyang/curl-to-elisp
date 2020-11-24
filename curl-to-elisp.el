@@ -37,6 +37,7 @@
 (require 'mml)                          ; `mml-compute-boundary'
 (require 'mm-url)                       ; `mm-url-encode-multipart-form-data'
 (require 'seq)                          ; `seq' pattern of `pcase'
+(require 'json)                         ; `json-pretty-print-buffer'
 
 (defgroup curl-to-elisp nil
   "Convert cURL command to equivalent Emacs Lisp code."
@@ -357,10 +358,16 @@ For verb request specification, see URL
        (when headers
          (setq s (concat s "\n" (mapconcat
                                  (pcase-lambda (`(,key . ,val))
-                                   (format "%s: %s" (capitalize key) val))
+                                   (format "%s: %s" key val))
                                  headers
                                  "\n"))))
        (when data
+         (when-let ((type (assoc-default "Content-Type" headers))
+                    (jsonp (string-match-p (rx "application/json") type)))
+           (with-temp-buffer
+             (insert data)
+             (json-pretty-print-buffer)
+             (setq data (buffer-string))))
          (setq s (concat s "\n\n" data)))
        (when insert
          (save-excursion
