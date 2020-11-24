@@ -299,13 +299,15 @@ Return nil if S does not contain CH."
 
 ;;;###autoload
 (defun curl-to-elisp-httpie-to-elisp (command &optional print)
-  "Convert httpie/curlie COMMAND to Emacs Lisp expression, return the expression.
+  "Convert httpie/curlie COMMAND to Emacs Lisp expression.
+
+Return the expression.
 
 When called interactively or PRINT is non-nil, also pretty-print
 the expression in echo area."
   (interactive (list (read-string "httpie command: ") t))
   (unless curl-to-elisp-curlie-binary
-    (user-error "Can't find curlie executable. Check `curl-to-elisp-curlie-binary'"))
+    (user-error "Can't find curlie executable.  Check `curl-to-elisp-curlie-binary'"))
   (let ((command (replace-regexp-in-string
                   "^\\(curlie\\|http\\) "
                   (format "%s --curl " curl-to-elisp-curlie-binary)
