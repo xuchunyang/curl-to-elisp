@@ -104,9 +104,24 @@
                      "curl -v --data-urlencode 'name=a cat' --data-urlencode 'hobbies=fishing, golf' localhost:4444"))))))
 
 (ert-deftest curl-to-elisp--trim ()
-  (string= (curl-to-elisp--trim "$ curl") "curl")
-  (string= (curl-to-elisp--trim "  #  curl") "curl")
-  (string= (curl-to-elisp--trim "  curl ") "curl "))
+  (should (string= (curl-to-elisp--trim "$ curl") "curl"))
+  (should (string= (curl-to-elisp--trim "  #  curl") "curl"))
+  (should (string= (curl-to-elisp--trim "  curl ") "curl ")))
+
+(ert-deftest curl-to-elisp-verb ()
+  (should (string= (curl-to-elisp-verb "curl example.com")
+                   "get http://example.com"))
+  (should
+   (string=
+    (curl-to-elisp-verb
+     "curl https://httpbin.org/post -H 'content-type: application/json; charset=utf-8' -d '{\"name\": \"John\", \"age\": 42}'")
+    "post https://httpbin.org/post
+Content-Type: application/json; charset=utf-8
+
+{
+  \"name\": \"John\",
+  \"age\": 42
+}")))
 
 (provide 'curl-to-elisp-tests)
 ;;; curl-to-elisp-tests.el ends here
