@@ -366,7 +366,8 @@ For verb request specification, see URL
                                  "\n"))))
        (when data
          (when-let ((type (assoc-default "Content-Type" headers))
-                    (jsonp (string-match-p (rx "application/json") type)))
+                    (jsonp (let ((case-fold-search t))
+                             (string-match-p (rx "application/json") type))))
            (with-temp-buffer
              (insert data)
              (json-pretty-print-buffer)
